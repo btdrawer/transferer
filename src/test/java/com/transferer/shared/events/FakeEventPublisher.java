@@ -1,6 +1,6 @@
 package com.transferer.shared.events;
 
-import com.transferer.account.domain.events.DomainEvent;
+import com.transferer.shared.domain.events.DomainEvent;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;

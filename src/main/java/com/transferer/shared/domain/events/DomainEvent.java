@@ -1,25 +1,21 @@
-package com.transferer.account.domain.events;
+package com.transferer.shared.domain.events;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.transferer.shared.domain.events.body.DomainEventBody;
+
 import java.time.Instant;
 import java.util.UUID;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
-public abstract class DomainEvent {
+public abstract class DomainEvent<T extends DomainEventBody> {
     private final String eventId;
     private final Instant occurredAt;
     private final String eventType;
+    private final T body;
 
-    protected DomainEvent() {
-        this.eventId = UUID.randomUUID().toString();
-        this.occurredAt = Instant.now();
-        this.eventType = this.getClass().getSimpleName().replace("Event", "");
-    }
-
-    protected DomainEvent(String eventType) {
+    protected DomainEvent(String eventType, T body) {
         this.eventId = UUID.randomUUID().toString();
         this.occurredAt = Instant.now();
         this.eventType = eventType;
+        this.body = body;
     }
 
     public String getEventId() {
@@ -33,4 +29,8 @@ public abstract class DomainEvent {
     public String getEventType() {
         return eventType;
     }
+
+    public T getBody() { return body; }
+
+    public abstract String getAggregateId();
 }

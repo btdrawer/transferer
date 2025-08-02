@@ -1,6 +1,6 @@
 package com.transferer.account.domain;
 
-import com.transferer.account.domain.events.DomainEvent;
+import com.transferer.shared.domain.events.DomainEvent;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -16,5 +16,5 @@ public interface AccountRepository {
     
     Mono<Void> deleteById(AccountId id);
 
-    Mono<Account> saveAndPublishEvents(Account account, List<DomainEvent> events);
+    Mono<Account> saveAndPublishEvents(Account account, List<DomainEvent<?>> events);
 }

@@ -1,36 +1,24 @@
 package com.transferer.account.domain.events;
 
 import com.transferer.account.domain.AccountId;
+import com.transferer.account.domain.events.body.AccountOpenedEventBody;
+import com.transferer.shared.domain.events.DomainEvent;
 
 import java.math.BigDecimal;
 
-public class AccountOpenedEvent extends DomainEvent {
+public class AccountOpenedEvent extends DomainEvent<AccountOpenedEventBody> {
     private final AccountId accountId;
-    private final String accountNumber;
-    private final String holderName;
-    private final BigDecimal initialBalance;
 
     public AccountOpenedEvent(AccountId accountId, String accountNumber, String holderName, BigDecimal initialBalance) {
-        super("AccountOpened");
+        super(
+                "AccountOpened",
+                new AccountOpenedEventBody(accountId, accountNumber, holderName, initialBalance)
+        );
         this.accountId = accountId;
-        this.accountNumber = accountNumber;
-        this.holderName = holderName;
-        this.initialBalance = initialBalance;
     }
 
-    public AccountId getAccountId() {
-        return accountId;
-    }
-
-    public String getAccountNumber() {
-        return accountNumber;
-    }
-
-    public String getHolderName() {
-        return holderName;
-    }
-
-    public BigDecimal getInitialBalance() {
-        return initialBalance;
+    @Override
+    public String getAggregateId() {
+        return accountId.toString();
     }
 }

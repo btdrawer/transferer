@@ -1,6 +1,6 @@
 package com.transferer.account.domain;
 
-import com.transferer.account.domain.events.DomainEvent;
+import com.transferer.shared.domain.events.DomainEvent;
 import com.transferer.shared.events.EventPublisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -52,7 +52,7 @@ public class FakeAccountRepository implements AccountRepository {
     }
 
     @Override
-    public Mono<Account> saveAndPublishEvents(Account account, List<DomainEvent> events) {
+    public Mono<Account> saveAndPublishEvents(Account account, List<DomainEvent<?>> events) {
         return save(account)
                 .flatMap(savedAccount ->
                         Flux.fromIterable(events)

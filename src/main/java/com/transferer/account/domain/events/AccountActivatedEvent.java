@@ -1,22 +1,22 @@
 package com.transferer.account.domain.events;
 
 import com.transferer.account.domain.AccountId;
+import com.transferer.account.domain.events.body.AccountActivatedEventBody;
+import com.transferer.shared.domain.events.DomainEvent;
 
-public class AccountActivatedEvent extends DomainEvent {
+public class AccountActivatedEvent extends DomainEvent<AccountActivatedEventBody> {
     private final AccountId accountId;
-    private final String accountNumber;
 
     public AccountActivatedEvent(AccountId accountId, String accountNumber) {
-        super("AccountActivated");
+        super(
+                "AccountActivated",
+                new AccountActivatedEventBody(accountId, accountNumber)
+        );
         this.accountId = accountId;
-        this.accountNumber = accountNumber;
     }
 
-    public AccountId getAccountId() {
-        return accountId;
-    }
-
-    public String getAccountNumber() {
-        return accountNumber;
+    @Override
+    public String getAggregateId() {
+        return accountId.toString();
     }
 }

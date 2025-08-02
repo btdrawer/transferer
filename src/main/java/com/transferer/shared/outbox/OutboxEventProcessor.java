@@ -1,12 +1,11 @@
 package com.transferer.shared.outbox;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.transferer.account.domain.events.DomainEvent;
+import com.transferer.shared.domain.events.DomainEvent;
 import com.transferer.shared.events.EventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;

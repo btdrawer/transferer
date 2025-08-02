@@ -5,6 +5,7 @@ import com.transferer.account.domain.AccountId;
 import com.transferer.account.domain.AccountStatus;
 import com.transferer.account.domain.FakeAccountRepository;
 import com.transferer.account.domain.events.*;
+import com.transferer.account.domain.events.body.AccountActivatedEventBody;
 import com.transferer.shared.events.FakeEventPublisher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -210,8 +211,9 @@ class AccountServiceTest {
                     assertThat(eventPublisher.getEventsOfType(AccountActivatedEvent.class)).hasSize(1);
                     
                     AccountActivatedEvent event = eventPublisher.getEventsOfType(AccountActivatedEvent.class).get(0);
-                    assertThat(event.getAccountId()).isEqualTo(accountId);
-                    assertThat(event.getAccountNumber()).isEqualTo(account.getAccountNumber());
+                    AccountActivatedEventBody eventBody = event.getBody();
+                    assertThat(eventBody.getAccountId()).isEqualTo(accountId);
+                    assertThat(eventBody.getAccountNumber()).isEqualTo(account.getAccountNumber());
                 })
                 .verifyComplete();
     }

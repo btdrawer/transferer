@@ -2,11 +2,9 @@ package com.transferer.shared.outbox;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.transferer.account.domain.events.DomainEvent;
+import com.transferer.shared.domain.events.DomainEvent;
 import com.transferer.shared.events.EventPublisher;
 import com.transferer.shared.events.TransactionalEventPublisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.reactive.TransactionalOperator;
@@ -27,17 +25,16 @@ public class OutboxEventPublisher implements EventPublisher, TransactionalEventP
     }
     
     @Override
-    public Mono<Void> publish(DomainEvent event) {
+    public Mono<Void> publish(DomainEvent<?> event) {
         return getOutboxEvent(event)
                 .flatMap(outboxEventRepository::save)
                 .then();
     }
     
-    private Mono<String> serializeEvent(DomainEvent event) {
+    private Mono<String> serializeEvent(DomainEvent<?> event) {
         return Mono.fromCallable(() -> {
             try {
-                // TODO only serialize body
-                return objectMapper.writeValueAsString(event);
+                return objectMapper.writeValueAsString(event.getBody());
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to serialize event: " + event.getEventId(), e);
             }
@@ -45,7 +42,7 @@ public class OutboxEventPublisher implements EventPublisher, TransactionalEventP
     }
     
     @Override
-    public Mono<Void> publishWithinTransaction(List<DomainEvent> events, TransactionalOperator transactionalOperator) {
+    public Mono<Void> publishWithinTransaction(List<DomainEvent<?>> events, TransactionalOperator transactionalOperator) {
         return Flux.fromIterable(events)
                 .flatMap(this::getOutboxEvent)
                 .flatMap(outboxEventRepository::save)
@@ -53,33 +50,17 @@ public class OutboxEventPublisher implements EventPublisher, TransactionalEventP
                 .then();
     }
 
-    private Mono<OutboxEvent> getOutboxEvent(DomainEvent event) {
+    private Mono<OutboxEvent> getOutboxEvent(DomainEvent<?> event) {
         return serializeEvent(event)
-                .map(eventData ->
+                .map(eventBody ->
                         new OutboxEvent(
                                 event.getEventId(),
                                 event.getEventType(),
-                                extractAggregateId(event),
-                                eventData,
+                                event.getAggregateId(),
+                                eventBody,
                                 event.getOccurredAt()
                         )
                 );
     }
     
-    private String extractAggregateId(DomainEvent event) {
-        if (event instanceof com.transferer.account.domain.events.AccountOpenedEvent) {
-            return ((com.transferer.account.domain.events.AccountOpenedEvent) event).getAccountId().toString();
-        } else if (event instanceof com.transferer.account.domain.events.AccountCreditedEvent) {
-            return ((com.transferer.account.domain.events.AccountCreditedEvent) event).getAccountId().toString();
-        } else if (event instanceof com.transferer.account.domain.events.AccountDebitedEvent) {
-            return ((com.transferer.account.domain.events.AccountDebitedEvent) event).getAccountId().toString();
-        } else if (event instanceof com.transferer.account.domain.events.AccountSuspendedEvent) {
-            return ((com.transferer.account.domain.events.AccountSuspendedEvent) event).getAccountId().toString();
-        } else if (event instanceof com.transferer.account.domain.events.AccountActivatedEvent) {
-            return ((com.transferer.account.domain.events.AccountActivatedEvent) event).getAccountId().toString();
-        } else if (event instanceof com.transferer.account.domain.events.AccountDeactivatedEvent) {
-            return ((com.transferer.account.domain.events.AccountDeactivatedEvent) event).getAccountId().toString();
-        }
-        return "unknown";
-    }
 }

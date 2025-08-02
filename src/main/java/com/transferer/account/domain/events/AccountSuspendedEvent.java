@@ -1,22 +1,22 @@
 package com.transferer.account.domain.events;
 
 import com.transferer.account.domain.AccountId;
+import com.transferer.account.domain.events.body.AccountSuspendedEventBody;
+import com.transferer.shared.domain.events.DomainEvent;
 
-public class AccountSuspendedEvent extends DomainEvent {
+public class AccountSuspendedEvent extends DomainEvent<AccountSuspendedEventBody> {
     private final AccountId accountId;
-    private final String accountNumber;
 
     public AccountSuspendedEvent(AccountId accountId, String accountNumber) {
-        super("AccountSuspended");
+        super(
+                "AccountSuspended",
+                new AccountSuspendedEventBody(accountId, accountNumber)
+        );
         this.accountId = accountId;
-        this.accountNumber = accountNumber;
     }
 
-    public AccountId getAccountId() {
-        return accountId;
-    }
-
-    public String getAccountNumber() {
-        return accountNumber;
+    @Override
+    public String getAggregateId() {
+        return accountId.toString();
     }
 }
