@@ -15,7 +15,7 @@ import java.util.Objects;
 public class Account {
 
     @Id
-    private String id;
+    private AccountId id;
 
     @Column("account_number")
     @NotBlank
@@ -35,16 +35,18 @@ public class Account {
     private AccountStatus status;
 
     @Column("created_at")
+    @NotNull
     private LocalDateTime createdAt;
 
     @Column("updated_at")
+    @NotNull
     private LocalDateTime updatedAt;
 
     protected Account() {
     }
 
     public Account(String accountNumber, String holderName, BigDecimal initialBalance) {
-        this.id = AccountId.generate().getValue();
+        this.id = AccountId.generate();
         this.accountNumber = Objects.requireNonNull(accountNumber, "Account number cannot be null");
         this.holderName = Objects.requireNonNull(holderName, "Holder name cannot be null");
         this.balance = Objects.requireNonNull(initialBalance, "Initial balance cannot be null");
@@ -100,11 +102,11 @@ public class Account {
     }
 
     public AccountId getId() {
-        return AccountId.of(id);
+        return id;
     }
     
     public String getIdValue() {
-        return id;
+        return id != null ? id.getValue() : null;
     }
 
     public String getAccountNumber() {

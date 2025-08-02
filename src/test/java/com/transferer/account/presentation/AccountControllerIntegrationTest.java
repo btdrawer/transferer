@@ -2,15 +2,18 @@ package com.transferer.account.presentation;
 
 import com.transferer.account.application.dto.OpenAccountRequest;
 import com.transferer.account.application.dto.UpdateBalanceRequest;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
@@ -20,7 +23,6 @@ import java.math.BigDecimal;
     "spring.r2dbc.password=password"
 })
 class AccountControllerIntegrationTest {
-
     @Autowired
     private WebTestClient webTestClient;
 
@@ -58,8 +60,9 @@ class AccountControllerIntegrationTest {
     @Test
     void getAccount_WithExistingId_ShouldReturnAccount() {
         OpenAccountRequest openRequest = new OpenAccountRequest("Jane Doe", BigDecimal.valueOf(2000));
-        
-        String accountId = webTestClient.post()
+
+        String accountId = new String(
+                webTestClient.post()
                 .uri("/api/v1/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(openRequest)
@@ -68,7 +71,9 @@ class AccountControllerIntegrationTest {
                 .expectBody()
                 .jsonPath("$.id").exists()
                 .returnResult()
-                .getResponseBodyContent();
+                .getResponseBodyContent(),
+                StandardCharsets.UTF_8
+        );
 
         webTestClient.get()
                 .uri("/api/v1/accounts/{id}", "test-id")

@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.*;
 
 class AccountTest {
-
     @Test
     void createAccount_WithValidData_ShouldCreateAccount() {
         Account account = new Account("1234567890", "John Doe", BigDecimal.valueOf(1000));
