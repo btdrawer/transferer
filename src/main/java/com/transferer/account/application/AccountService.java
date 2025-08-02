@@ -4,10 +4,11 @@ import com.transferer.account.domain.Account;
 import com.transferer.account.domain.AccountId;
 import com.transferer.account.domain.AccountRepository;
 import com.transferer.account.domain.events.*;
-import com.transferer.shared.events.EventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+
+import java.util.Collections;
 
 import java.math.BigDecimal;
 import java.util.Random;
@@ -17,12 +18,10 @@ import java.util.Random;
 public class AccountService {
 
     private final AccountRepository accountRepository;
-    private final EventPublisher eventPublisher;
     private final Random random = new Random();
 
-    public AccountService(AccountRepository accountRepository, EventPublisher eventPublisher) {
+    public AccountService(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
-        this.eventPublisher = eventPublisher;
     }
 
     public Mono<Account> openAccount(String holderName, BigDecimal initialBalance) {
@@ -35,11 +34,12 @@ public class AccountService {
 
         return generateUniqueAccountNumber()
                 .map(accountNumber -> new Account(accountNumber, holderName.trim(), initialBalance))
-                .flatMap(accountRepository::save)
-                .flatMap(account -> eventPublisher.publish(
-                        new AccountOpenedEvent(account.getId(), account.getAccountNumber(), 
-                                account.getHolderName(), account.getBalance()))
-                        .thenReturn(account));
+                .flatMap(account -> {
+                    AccountOpenedEvent event = new AccountOpenedEvent(
+                            account.getId(), account.getAccountNumber(), 
+                            account.getHolderName(), account.getBalance());
+                    return accountRepository.saveAndPublishEvents(account, Collections.singletonList(event));
+                });
     }
 
     @Transactional(readOnly = true)
@@ -63,48 +63,53 @@ public class AccountService {
     public Mono<Account> creditAccount(AccountId accountId, BigDecimal amount) {
         return getAccount(accountId)
                 .doOnNext(account -> account.credit(amount))
-                .flatMap(accountRepository::save)
-                .flatMap(account -> eventPublisher.publish(
-                        new AccountCreditedEvent(account.getId(), account.getAccountNumber(), 
-                                amount, account.getBalance()))
-                        .thenReturn(account));
+                .flatMap(account -> {
+                    AccountCreditedEvent event = new AccountCreditedEvent(
+                            account.getId(), account.getAccountNumber(), 
+                            amount, account.getBalance());
+                    return accountRepository.saveAndPublishEvents(account, Collections.singletonList(event));
+                });
     }
 
     public Mono<Account> debitAccount(AccountId accountId, BigDecimal amount) {
         return getAccount(accountId)
                 .doOnNext(account -> account.debit(amount))
-                .flatMap(accountRepository::save)
-                .flatMap(account -> eventPublisher.publish(
-                        new AccountDebitedEvent(account.getId(), account.getAccountNumber(), 
-                                amount, account.getBalance()))
-                        .thenReturn(account));
+                .flatMap(account -> {
+                    AccountDebitedEvent event = new AccountDebitedEvent(
+                            account.getId(), account.getAccountNumber(), 
+                            amount, account.getBalance());
+                    return accountRepository.saveAndPublishEvents(account, Collections.singletonList(event));
+                });
     }
 
     public Mono<Account> suspendAccount(AccountId accountId) {
         return getAccount(accountId)
                 .doOnNext(Account::suspend)
-                .flatMap(accountRepository::save)
-                .flatMap(account -> eventPublisher.publish(
-                        new AccountSuspendedEvent(account.getId(), account.getAccountNumber()))
-                        .thenReturn(account));
+                .flatMap(account -> {
+                    AccountSuspendedEvent event = new AccountSuspendedEvent(
+                            account.getId(), account.getAccountNumber());
+                    return accountRepository.saveAndPublishEvents(account, Collections.singletonList(event));
+                });
     }
 
     public Mono<Account> activateAccount(AccountId accountId) {
         return getAccount(accountId)
                 .doOnNext(Account::activate)
-                .flatMap(accountRepository::save)
-                .flatMap(account -> eventPublisher.publish(
-                        new AccountActivatedEvent(account.getId(), account.getAccountNumber()))
-                        .thenReturn(account));
+                .flatMap(account -> {
+                    AccountActivatedEvent event = new AccountActivatedEvent(
+                            account.getId(), account.getAccountNumber());
+                    return accountRepository.saveAndPublishEvents(account, Collections.singletonList(event));
+                });
     }
 
     public Mono<Account> deactivateAccount(AccountId accountId) {
         return getAccount(accountId)
                 .doOnNext(Account::deactivate)
-                .flatMap(accountRepository::save)
-                .flatMap(account -> eventPublisher.publish(
-                        new AccountDeactivatedEvent(account.getId(), account.getAccountNumber()))
-                        .thenReturn(account));
+                .flatMap(account -> {
+                    AccountDeactivatedEvent event = new AccountDeactivatedEvent(
+                            account.getId(), account.getAccountNumber());
+                    return accountRepository.saveAndPublishEvents(account, Collections.singletonList(event));
+                });
     }
 
     private Mono<String> generateUniqueAccountNumber() {

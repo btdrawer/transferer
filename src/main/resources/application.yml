@@ -33,6 +33,13 @@ logging:
     io.r2dbc.h2: DEBUG
     reactor.netty: DEBUG
 
+outbox:
+  processor:
+    interval: 5000
+    batch-size: 100
+    cleanup-interval: 3600000
+    cleanup-retention-days: 7
+
 ---
 spring:
   config:

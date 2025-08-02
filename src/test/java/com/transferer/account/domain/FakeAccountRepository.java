@@ -1,12 +1,21 @@
 package com.transferer.account.domain;
 
+import com.transferer.account.domain.events.DomainEvent;
+import com.transferer.shared.events.EventPublisher;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 public class FakeAccountRepository implements AccountRepository {
     private final Map<String, Account> accounts = new ConcurrentHashMap<>();
+    private final EventPublisher eventPublisher;
+
+    public FakeAccountRepository(EventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 
     @Override
     public Mono<Account> save(Account account) {
@@ -40,6 +49,16 @@ public class FakeAccountRepository implements AccountRepository {
     public Mono<Void> deleteById(AccountId id) {
         accounts.remove(id.getValue());
         return Mono.empty();
+    }
+
+    @Override
+    public Mono<Account> saveAndPublishEvents(Account account, List<DomainEvent> events) {
+        return save(account)
+                .flatMap(savedAccount ->
+                        Flux.fromIterable(events)
+                                .flatMap(eventPublisher::publish)
+                                .then(Mono.just(savedAccount))
+                );
     }
 
     public void clear() {

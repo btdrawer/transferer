@@ -23,9 +23,9 @@ class AccountServiceTest {
 
     @BeforeEach
     void setUp() {
-        accountRepository = new FakeAccountRepository();
         eventPublisher = new FakeEventPublisher();
-        accountService = new AccountService(accountRepository, eventPublisher);
+        accountRepository = new FakeAccountRepository(eventPublisher);
+        accountService = new AccountService(accountRepository);
     }
 
     @AfterEach
