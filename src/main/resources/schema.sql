@@ -11,6 +11,27 @@ CREATE TABLE IF NOT EXISTS accounts (
 CREATE INDEX IF NOT EXISTS idx_accounts_account_number ON accounts (account_number);
 CREATE INDEX IF NOT EXISTS idx_accounts_status ON accounts (status);
 
+CREATE TABLE IF NOT EXISTS transactions (
+    id VARCHAR(255) PRIMARY KEY,
+    sender_account_id VARCHAR(255) NOT NULL,
+    recipient_account_id VARCHAR(255) NOT NULL,
+    amount DECIMAL(19,2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP NULL,
+    CONSTRAINT fk_transactions_sender FOREIGN KEY (sender_account_id) REFERENCES accounts(id),
+    CONSTRAINT fk_transactions_recipient FOREIGN KEY (recipient_account_id) REFERENCES accounts(id),
+    CONSTRAINT chk_transactions_amount_positive CHECK (amount > 0),
+    CONSTRAINT chk_transactions_different_accounts CHECK (sender_account_id != recipient_account_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_sender_account_id ON transactions (sender_account_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_recipient_account_id ON transactions (recipient_account_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions (status);
+CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions (created_at);
+
 CREATE TABLE IF NOT EXISTS outbox_events (
     id BIGSERIAL PRIMARY KEY,
     event_id VARCHAR(255) UNIQUE NOT NULL,

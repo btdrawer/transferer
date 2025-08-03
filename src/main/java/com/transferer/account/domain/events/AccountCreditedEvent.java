@@ -3,6 +3,7 @@ package com.transferer.account.domain.events;
 import com.transferer.account.domain.AccountId;
 import com.transferer.account.domain.events.body.AccountCreditEventBody;
 import com.transferer.shared.domain.events.DomainEvent;
+import com.transferer.shared.domain.events.DomainEventType;
 
 import java.math.BigDecimal;
 
@@ -16,7 +17,7 @@ public class AccountCreditedEvent extends DomainEvent<AccountCreditEventBody> {
             BigDecimal newBalance
     ) {
         super(
-                "AccountCredited",
+                DomainEventType.ACCOUNT_CREDITED,
                 new AccountCreditEventBody(accountId, accountNumber, amount, newBalance)
         );
         this.accountId = accountId;

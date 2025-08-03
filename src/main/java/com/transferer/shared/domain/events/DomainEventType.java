@@ -1,0 +1,14 @@
+package com.transferer.shared.domain.events;
+
+public enum DomainEventType {
+    ACCOUNT_ACTIVATED,
+    ACCOUNT_DEACTIVATED,
+    ACCOUNT_CREDITED,
+    ACCOUNT_DEBITED,
+    ACCOUNT_OPENED,
+    ACCOUNT_SUSPENDED,
+
+    TRANSACTION_CREATED,
+    TRANSACTION_COMPLETED,
+    TRANSACTION_FAILED
+}

@@ -8,10 +8,10 @@ import java.util.UUID;
 public abstract class DomainEvent<T extends DomainEventBody> {
     private final String eventId;
     private final Instant occurredAt;
-    private final String eventType;
+    private final DomainEventType eventType;
     private final T body;
 
-    protected DomainEvent(String eventType, T body) {
+    protected DomainEvent(DomainEventType eventType, T body) {
         this.eventId = UUID.randomUUID().toString();
         this.occurredAt = Instant.now();
         this.eventType = eventType;
@@ -26,7 +26,7 @@ public abstract class DomainEvent<T extends DomainEventBody> {
         return occurredAt;
     }
 
-    public String getEventType() {
+    public DomainEventType getEventType() {
         return eventType;
     }
 
