@@ -4,6 +4,7 @@ import com.transferer.account.domain.AccountId;
 import com.transferer.account.domain.events.body.AccountCreditEventBody;
 import com.transferer.shared.domain.events.DomainEvent;
 import com.transferer.shared.domain.events.DomainEventType;
+import com.transferer.transaction.domain.TransactionId;
 
 import java.math.BigDecimal;
 
@@ -12,13 +13,14 @@ public class AccountCreditedEvent extends DomainEvent<AccountCreditEventBody> {
 
     public AccountCreditedEvent(
             AccountId accountId,
+            TransactionId transactionId,
             String accountNumber,
             BigDecimal amount,
             BigDecimal newBalance
     ) {
         super(
                 DomainEventType.ACCOUNT_CREDITED,
-                new AccountCreditEventBody(accountId, accountNumber, amount, newBalance)
+                new AccountCreditEventBody(accountId, transactionId, accountNumber, amount, newBalance)
         );
         this.accountId = accountId;
     }

@@ -4,6 +4,7 @@ import com.transferer.account.domain.Account;
 import com.transferer.account.domain.AccountId;
 import com.transferer.account.domain.AccountRepository;
 import com.transferer.account.domain.events.*;
+import com.transferer.transaction.domain.TransactionId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -60,24 +61,32 @@ public class AccountService {
                 .map(Account::getBalance);
     }
 
-    public Mono<Account> creditAccount(AccountId accountId, BigDecimal amount) {
+    public Mono<Account> creditAccount(AccountId accountId, TransactionId transactionId, BigDecimal amount) {
         return getAccount(accountId)
                 .doOnNext(account -> account.credit(amount))
                 .flatMap(account -> {
                     AccountCreditedEvent event = new AccountCreditedEvent(
-                            account.getId(), account.getAccountNumber(), 
-                            amount, account.getBalance());
+                            account.getId(),
+                            transactionId,
+                            account.getAccountNumber(),
+                            amount,
+                            account.getBalance()
+                    );
                     return accountRepository.saveAndPublishEvents(account, Collections.singletonList(event));
                 });
     }
 
-    public Mono<Account> debitAccount(AccountId accountId, BigDecimal amount) {
+    public Mono<Account> debitAccount(AccountId accountId, TransactionId transactionId, BigDecimal amount) {
         return getAccount(accountId)
                 .doOnNext(account -> account.debit(amount))
                 .flatMap(account -> {
                     AccountDebitedEvent event = new AccountDebitedEvent(
-                            account.getId(), account.getAccountNumber(), 
-                            amount, account.getBalance());
+                            account.getId(),
+                            transactionId,
+                            account.getAccountNumber(),
+                            amount,
+                            account.getBalance()
+                    );
                     return accountRepository.saveAndPublishEvents(account, Collections.singletonList(event));
                 });
     }

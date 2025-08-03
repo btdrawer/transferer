@@ -1,0 +1,13 @@
+package com.transferer.payment.domain;
+
+public enum PaymentStep {
+    INITIATED,
+    TRANSACTION_CREATED,
+    TRANSACTION_PROCESSING,
+    SENDER_DEBITED,
+    RECIPIENT_CREDITED,
+    COMPLETED,
+    FAILED,
+    COMPENSATING_SENDER_CREDIT,
+    COMPENSATED
+}
