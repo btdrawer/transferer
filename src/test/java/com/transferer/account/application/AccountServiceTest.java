@@ -5,7 +5,7 @@ import com.transferer.account.domain.AccountId;
 import com.transferer.account.domain.AccountStatus;
 import com.transferer.account.domain.FakeAccountRepository;
 import com.transferer.account.domain.events.*;
-import com.transferer.account.domain.events.body.AccountActivatedEventBody;
+import com.transferer.account.domain.events.body.*;
 import com.transferer.shared.events.FakeEventPublisher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -146,10 +146,11 @@ class AccountServiceTest {
                     assertThat(eventPublisher.getEventsOfType(AccountOpenedEvent.class)).hasSize(1);
                     
                     AccountOpenedEvent event = eventPublisher.getEventsOfType(AccountOpenedEvent.class).get(0);
-                    assertThat(event.getAccountId()).isEqualTo(account.getId());
-                    assertThat(event.getAccountNumber()).isEqualTo(account.getAccountNumber());
-                    assertThat(event.getHolderName()).isEqualTo("John Doe");
-                    assertThat(event.getInitialBalance()).isEqualTo(BigDecimal.valueOf(1000));
+                    AccountOpenedEventBody eventBody = event.getBody();
+                    assertThat(eventBody.getAccountId()).isEqualTo(account.getId());
+                    assertThat(eventBody.getAccountNumber()).isEqualTo(account.getAccountNumber());
+                    assertThat(eventBody.getHolderName()).isEqualTo("John Doe");
+                    assertThat(eventBody.getInitialBalance()).isEqualTo(BigDecimal.valueOf(1000));
                 })
                 .verifyComplete();
     }
@@ -168,9 +169,10 @@ class AccountServiceTest {
                     assertThat(eventPublisher.getEventsOfType(AccountCreditedEvent.class)).hasSize(1);
                     
                     AccountCreditedEvent event = eventPublisher.getEventsOfType(AccountCreditedEvent.class).get(0);
-                    assertThat(event.getAccountId()).isEqualTo(accountId);
-                    assertThat(event.getAmount()).isEqualTo(BigDecimal.valueOf(500));
-                    assertThat(event.getNewBalance()).isEqualTo(BigDecimal.valueOf(1500));
+                    AccountCreditEventBody eventBody = event.getBody();
+                    assertThat(eventBody.getAccountId()).isEqualTo(accountId);
+                    assertThat(eventBody.getAmount()).isEqualTo(BigDecimal.valueOf(500));
+                    assertThat(eventBody.getNewBalance()).isEqualTo(BigDecimal.valueOf(1500));
                 })
                 .verifyComplete();
     }
@@ -189,9 +191,10 @@ class AccountServiceTest {
                     assertThat(eventPublisher.getEventsOfType(AccountDebitedEvent.class)).hasSize(1);
                     
                     AccountDebitedEvent event = eventPublisher.getEventsOfType(AccountDebitedEvent.class).get(0);
-                    assertThat(event.getAccountId()).isEqualTo(accountId);
-                    assertThat(event.getAmount()).isEqualTo(BigDecimal.valueOf(300));
-                    assertThat(event.getNewBalance()).isEqualTo(BigDecimal.valueOf(700));
+                    AccountDebitedEventBody eventBody = event.getBody();
+                    assertThat(eventBody.getAccountId()).isEqualTo(accountId);
+                    assertThat(eventBody.getAmount()).isEqualTo(BigDecimal.valueOf(300));
+                    assertThat(eventBody.getNewBalance()).isEqualTo(BigDecimal.valueOf(700));
                 })
                 .verifyComplete();
     }
@@ -232,8 +235,9 @@ class AccountServiceTest {
                     assertThat(eventPublisher.getEventsOfType(AccountDeactivatedEvent.class)).hasSize(1);
                     
                     AccountDeactivatedEvent event = eventPublisher.getEventsOfType(AccountDeactivatedEvent.class).get(0);
-                    assertThat(event.getAccountId()).isEqualTo(accountId);
-                    assertThat(event.getAccountNumber()).isEqualTo(account.getAccountNumber());
+                    AccountDeactivatedEventBody eventBody = event.getBody();
+                    assertThat(eventBody.getAccountId()).isEqualTo(accountId);
+                    assertThat(eventBody.getAccountNumber()).isEqualTo(account.getAccountNumber());
                 })
                 .verifyComplete();
     }
@@ -252,8 +256,9 @@ class AccountServiceTest {
                     assertThat(eventPublisher.getEventsOfType(AccountSuspendedEvent.class)).hasSize(1);
                     
                     AccountSuspendedEvent event = eventPublisher.getEventsOfType(AccountSuspendedEvent.class).get(0);
-                    assertThat(event.getAccountId()).isEqualTo(accountId);
-                    assertThat(event.getAccountNumber()).isEqualTo(account.getAccountNumber());
+                    AccountSuspendedEventBody eventBody = event.getBody();
+                    assertThat(eventBody.getAccountId()).isEqualTo(accountId);
+                    assertThat(eventBody.getAccountNumber()).isEqualTo(account.getAccountNumber());
                 })
                 .verifyComplete();
     }

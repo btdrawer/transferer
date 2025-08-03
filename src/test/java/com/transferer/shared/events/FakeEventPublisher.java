@@ -7,15 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FakeEventPublisher implements EventPublisher {
-    private final List<DomainEvent> publishedEvents = new ArrayList<>();
+    private final List<DomainEvent<?>> publishedEvents = new ArrayList<>();
 
     @Override
-    public Mono<Void> publish(DomainEvent event) {
+    public Mono<Void> publish(DomainEvent<?> event) {
         publishedEvents.add(event);
         return Mono.empty();
     }
 
-    public List<DomainEvent> getPublishedEvents() {
+    public List<DomainEvent<?>> getPublishedEvents() {
         return new ArrayList<>(publishedEvents);
     }
 
@@ -28,7 +28,7 @@ public class FakeEventPublisher implements EventPublisher {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends DomainEvent> List<T> getEventsOfType(Class<T> eventType) {
+    public <T extends DomainEvent<?>> List<T> getEventsOfType(Class<T> eventType) {
         return publishedEvents.stream()
                 .filter(eventType::isInstance)
                 .map(event -> (T) event)

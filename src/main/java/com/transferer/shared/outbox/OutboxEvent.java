@@ -33,8 +33,6 @@ public class OutboxEvent {
     @Column("created_at")
     private Instant createdAt;
 
-    public OutboxEvent() {}
-
     public OutboxEvent(String eventId, String eventType, String aggregateId, String eventData, Instant occurredAt) {
         this.eventId = eventId;
         this.eventType = eventType;
