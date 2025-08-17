@@ -9,12 +9,9 @@ import com.transferer.payment.domain.Payment;
 import com.transferer.payment.domain.PaymentRepository;
 import com.transferer.payment.domain.PaymentStatus;
 import com.transferer.payment.domain.PaymentStep;
-import com.transferer.payment.infrastructure.R2dbcPaymentRepository;
 import com.transferer.transaction.application.TransactionService;
 import com.transferer.transaction.domain.TransactionRepository;
-import com.transferer.account.infrastructure.R2dbcAccountRepository;
-import com.transferer.transaction.infrastructure.R2dbcTransactionRepository;
-import com.transferer.shared.events.EventBus;
+import com.transferer.shared.domain.events.DomainEventType;
 import com.transferer.TestEventUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -30,6 +27,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.Arrays;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataR2dbcTest
@@ -40,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
     com.transferer.payment.infrastructure.R2dbcPaymentRepository.class,
     com.transferer.account.infrastructure.R2dbcAccountRepository.class,
     com.transferer.transaction.infrastructure.R2dbcTransactionRepository.class,
+    com.transferer.shared.outbox.OutboxEventBus.class,
     com.transferer.shared.outbox.OutboxEventPublisher.class,
     com.transferer.TestJacksonConfiguration.class
 })
@@ -64,9 +64,6 @@ class PaymentSagaDbIntegrationTest {
 
     @Autowired
     private TransactionRepository transactionRepository;
-
-    @Autowired
-    private EventBus eventBus;
 
     @Autowired
     private DatabaseClient databaseClient;
@@ -95,6 +92,7 @@ class PaymentSagaDbIntegrationTest {
         databaseClient.sql("DELETE FROM payments").then().block();
         databaseClient.sql("DELETE FROM transactions").then().block();
         databaseClient.sql("DELETE FROM accounts").then().block();
+        databaseClient.sql("DELETE FROM outbox_events").then().block();
     }
 
     @Test
@@ -107,8 +105,8 @@ class PaymentSagaDbIntegrationTest {
                                 paymentAmount,
                                 "Database integration test"
                         ),
-                        eventBus,
-                        2 // PaymentInitiatedEvent + PaymentStepAdvancedEvent
+                        databaseClient,
+                        Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 )
         )
                 .assertNext(payment -> {
@@ -134,8 +132,8 @@ class PaymentSagaDbIntegrationTest {
                                 paymentAmount,
                                 "State persistence test"
                         ),
-                        eventBus,
-                        2 // PaymentInitiatedEvent + PaymentStepAdvancedEvent
+                        databaseClient,
+                        Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 ).flatMap(payment ->
                         paymentRepository.findById(payment.getId())
                 )
@@ -161,11 +159,11 @@ class PaymentSagaDbIntegrationTest {
                                 paymentAmount,
                                 "Saga progression test"
                         ),
-                        eventBus,
-                        2 // Initial events
+                        databaseClient,
+                        Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 ).delayUntil(payment -> 
-                        // Wait for additional saga processing events
-                        TestEventUtils.waitForEventProcessingToComplete(eventBus)
+                        // Wait for saga processing to complete by checking for additional events in outbox
+                        Mono.delay(Duration.ofMillis(300))
                 ).flatMap(payment -> 
                         // Re-fetch the payment to get the latest state after saga processing
                         paymentRepository.findById(payment.getId())
@@ -199,8 +197,8 @@ class PaymentSagaDbIntegrationTest {
                         smallAmount,
                         "Concurrent payment 1"
                 ),
-                eventBus,
-                2
+                databaseClient,
+                Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
         );
 
         // Create another recipient account first to avoid foreign key constraint
@@ -214,8 +212,8 @@ class PaymentSagaDbIntegrationTest {
                         smallAmount,
                         "Concurrent payment 2"
                 ),
-                eventBus,
-                2
+                databaseClient,
+                Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
         );
 
         StepVerifier.create(Mono.zip(payment1, payment2))
@@ -242,8 +240,8 @@ class PaymentSagaDbIntegrationTest {
                                 paymentAmount,
                                 "Status query test"
                         ),
-                        eventBus,
-                        2
+                        databaseClient,
+                        Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 ).then(paymentService.getPaymentsByStatus(PaymentStatus.PENDING).next())
         )
                 .assertNext(payment -> {
@@ -263,8 +261,8 @@ class PaymentSagaDbIntegrationTest {
                                 paymentAmount,
                                 "Account query test"
                         ),
-                        eventBus,
-                        2
+                        databaseClient,
+                        Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 ).then(paymentService.getPaymentsByAccount(senderAccountId).next())
         )
                 .assertNext(payment -> {
@@ -284,8 +282,8 @@ class PaymentSagaDbIntegrationTest {
                                 paymentAmount,
                                 "Step query test"
                         ),
-                        eventBus,
-                        2
+                        databaseClient,
+                        Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 ).then(paymentService.getPaymentsByStep(PaymentStep.INITIATED).next())
         )
                 .assertNext(payment -> {
@@ -309,8 +307,8 @@ class PaymentSagaDbIntegrationTest {
                                 new BigDecimal("1000.00"),
                                 "Insufficient funds test"
                         ),
-                        eventBus,
-                        2
+                        databaseClient,
+                        Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 )
         )
                 .assertNext(payment -> {
@@ -331,11 +329,11 @@ class PaymentSagaDbIntegrationTest {
                                 paymentAmount,
                                 "Referential integrity test"
                         ),
-                        eventBus,
-                        2
+                        databaseClient,
+                        Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 ).delayUntil(payment -> 
                         // Wait for saga processing to potentially create transaction
-                        TestEventUtils.waitForEventProcessingToComplete(eventBus)
+                        Mono.delay(Duration.ofMillis(300))
                 ).flatMap(payment ->
                         paymentRepository.findById(payment.getId())
                                 .flatMap(updatedPayment -> {

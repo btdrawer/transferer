@@ -53,18 +53,16 @@ public class OutboxEventBus implements TransactionalEventBus {
     @Override
     public Mono<Void> publishWithinTransaction(List<DomainEvent<?>> events, TransactionalOperator transactionalOperator) {
         return Flux.fromIterable(events)
-                .flatMap(this::getOutboxEvent)
-                .flatMap(outboxEventRepository::save)
-                .doOnNext(savedEvent -> {
-                    // Find the original event and notify subscribers
-                    events.stream()
-                            .filter(event -> event.getEventId().equals(savedEvent.getEventId()))
-                            .findFirst()
-                            .ifPresent(event -> {
+                .flatMap(event -> 
+                    getOutboxEvent(event)
+                            .flatMap(outboxEventRepository::save)
+                            .doOnNext(savedEvent -> {
+                                // Emit the original event to reactive stream after successful save
                                 eventSink.tryEmitNext(event);
                                 notifySubscribers(event);
-                            });
-                })
+                            })
+                            .then(Mono.just(event))
+                )
                 .as(transactionalOperator::transactional)
                 .then();
     }

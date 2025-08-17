@@ -14,7 +14,6 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Component
-@Primary
 public class OutboxEventPublisher implements EventPublisher, TransactionalEventPublisher {
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
