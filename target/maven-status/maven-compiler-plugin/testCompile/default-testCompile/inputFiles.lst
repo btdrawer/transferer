@@ -1,6 +1,0 @@
-/Users/bendrawer/transferer/src/test/java/com/transferer/payment/PaymentDoubleSpendingTest.java
-/Users/bendrawer/transferer/src/test/java/com/transferer/payment/PaymentSagaDbIntegrationTest.java
-/Users/bendrawer/transferer/src/test/java/com/transferer/TestJacksonConfiguration.java
-/Users/bendrawer/transferer/src/test/java/com/transferer/payment/PaymentSagaIntegrationTest.java
-/Users/bendrawer/transferer/src/test/java/com/transferer/payment/PaymentRollbackTest.java
-/Users/bendrawer/transferer/src/test/java/com/transferer/TestEventUtils.java
