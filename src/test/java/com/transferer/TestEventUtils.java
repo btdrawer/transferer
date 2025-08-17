@@ -41,6 +41,29 @@ public class TestEventUtils {
     public static <T> Mono<T> performAndWaitForEvents(Mono<T> operation, DatabaseClient databaseClient, List<DomainEventType> expectedEventTypes) {
         return performAndWaitForEvents(operation, databaseClient, expectedEventTypes, DEFAULT_TIMEOUT);
     }
+
+    /**
+     * Waits for specific event types to appear in the outbox_events table.
+     * 
+     * @param databaseClient the database client to query the outbox table
+     * @param expectedEventTypes the list of event types to wait for
+     * @return Mono that completes when all specified event types have been found in the outbox
+     */
+    public static Mono<Void> waitForEventTypes(DatabaseClient databaseClient, List<DomainEventType> expectedEventTypes) {
+        return waitForEventsInOutbox(databaseClient, expectedEventTypes, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Waits for specific event types to appear in the outbox_events table with custom timeout.
+     * 
+     * @param databaseClient the database client to query the outbox table
+     * @param expectedEventTypes the list of event types to wait for
+     * @param timeout the maximum time to wait
+     * @return Mono that completes when all specified event types have been found in the outbox
+     */
+    public static Mono<Void> waitForEventTypes(DatabaseClient databaseClient, List<DomainEventType> expectedEventTypes, Duration timeout) {
+        return waitForEventsInOutbox(databaseClient, expectedEventTypes, timeout);
+    }
     
     /**
      * Waits for specific event types to appear in the outbox_events table.

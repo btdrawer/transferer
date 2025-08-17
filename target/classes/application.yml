@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: transferer
+  
+  r2dbc:
+    url: r2dbc:h2:mem:///transferer
+    username: sa
+    password: password
+    pool:
+      initial-size: 10
+      max-size: 20
+      max-idle-time: 30m
+      validation-query: SELECT 1
+  
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+  netty:
+    connection-timeout: 20s
+    h2c-max-content-length: 0B
+
+logging:
+  level:
+    com.transferer: DEBUG
+    org.springframework.web: DEBUG
+    io.r2dbc.h2: DEBUG
+    reactor.netty: DEBUG
+
+outbox:
+  processor:
+    interval: 5000
+    batch-size: 100
+    cleanup-interval: 3600000
+    cleanup-retention-days: 7
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  
+  r2dbc:
+    url: ${DATABASE_URL:r2dbc:postgresql://localhost:5432/transferer}
+    username: ${DATABASE_USERNAME:transferer}
+    password: ${DATABASE_PASSWORD:password}
+    pool:
+      initial-size: 5
+      max-size: 50
+      max-idle-time: 10m
+      validation-query: SELECT 1
+  
+  sql:
+    init:
+      mode: never
+
+server:
+  netty:
+    connection-timeout: 10s
+
+logging:
+  level:
+    com.transferer: INFO
+    org.springframework.web: INFO
+    io.r2dbc: WARN
