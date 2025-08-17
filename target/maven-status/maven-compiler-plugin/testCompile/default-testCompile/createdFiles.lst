@@ -1,6 +1,6 @@
-com/transferer/payment/PaymentDoubleSpendingTest.class
 com/transferer/TestJacksonConfiguration.class
+com/transferer/payment/PaymentDoubleSpendingTest.class
 com/transferer/payment/PaymentRollbackTest.class
 com/transferer/payment/PaymentSagaIntegrationTest.class
-com/transferer/payment/PaymentSagaIntegrationTestWithDatabase.class
 com/transferer/payment/PaymentSagaDbIntegrationTest.class
+com/transferer/TestEventUtils.class
