@@ -208,7 +208,7 @@ public class PaymentService {
                 });
     }
 
-    public Mono<Payment> processPaymentSaga(Payment payment) {
+    private Mono<Payment> processPaymentSaga(Payment payment) {
         return switch (payment.getCurrentStep()) {
             case INITIATED -> createTransaction(payment);
             case TRANSACTION_CREATED -> startTransactionProcessing(payment);

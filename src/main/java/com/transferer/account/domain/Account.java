@@ -1,6 +1,8 @@
 package com.transferer.account.domain;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import jakarta.validation.constraints.DecimalMin;
@@ -12,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Table("accounts")
-public class Account {
+public class Account implements Persistable<AccountId> {
 
     @Id
     private AccountId id;
@@ -41,6 +43,9 @@ public class Account {
     @Column("updated_at")
     @NotNull
     private LocalDateTime updatedAt;
+
+    @Transient
+    private boolean isNew = true;
 
     protected Account() {
     }
@@ -131,6 +136,15 @@ public class Account {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+    
+    public void markNotNew() {
+        this.isNew = false;
     }
 
     @Override

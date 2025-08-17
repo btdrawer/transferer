@@ -3,6 +3,8 @@ package com.transferer.payment.domain;
 import com.transferer.account.domain.AccountId;
 import com.transferer.transaction.domain.TransactionId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import jakarta.validation.constraints.DecimalMin;
@@ -13,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Table("payments")
-public class Payment {
+public class Payment implements Persistable<PaymentId> {
 
     @Id
     private PaymentId id;
@@ -58,6 +60,9 @@ public class Payment {
 
     @Column("completed_at")
     private LocalDateTime completedAt;
+
+    @Transient
+    private boolean isNew = true;
 
     protected Payment() {
     }
@@ -196,6 +201,15 @@ public class Payment {
 
     public LocalDateTime getCompletedAt() {
         return completedAt;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void markNotNew() {
+        this.isNew = false;
     }
 
     @Override

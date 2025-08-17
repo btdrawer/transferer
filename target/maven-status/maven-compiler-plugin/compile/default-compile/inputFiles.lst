@@ -39,6 +39,7 @@
 /Users/bendrawer/transferer/src/main/java/com/transferer/account/domain/events/AccountDebitedEvent.java
 /Users/bendrawer/transferer/src/main/java/com/transferer/transaction/domain/TransactionId.java
 /Users/bendrawer/transferer/src/main/java/com/transferer/account/domain/events/AccountCreditedEvent.java
+/Users/bendrawer/transferer/src/main/java/com/transferer/shared/infrastructure/R2dbcConfiguration.java
 /Users/bendrawer/transferer/src/main/java/com/transferer/account/domain/AccountRepository.java
 /Users/bendrawer/transferer/src/main/java/com/transferer/account/domain/AccountId.java
 /Users/bendrawer/transferer/src/main/java/com/transferer/transaction/application/TransactionNotFoundException.java

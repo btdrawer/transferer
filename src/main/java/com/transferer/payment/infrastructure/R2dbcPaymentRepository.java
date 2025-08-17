@@ -20,16 +20,11 @@ import java.util.List;
 
 interface R2dbcPaymentRepositoryJpa extends R2dbcRepository<Payment, PaymentId> {
     Mono<Payment> findByTransactionId(TransactionId transactionId);
-    Flux<Payment> findBySenderAccountId(AccountId senderAccountId);
-    Flux<Payment> findByRecipientAccountId(AccountId recipientAccountId);
     Flux<Payment> findByStatus(PaymentStatus status);
     Flux<Payment> findByCurrentStep(PaymentStep step);
     
     @Query("SELECT * FROM payments WHERE sender_account_id = :accountId OR recipient_account_id = :accountId")
     Flux<Payment> findByAccountId(AccountId accountId);
-    
-    @Query("SELECT * FROM payments WHERE status = 'COMPENSATING' OR (status = 'PROCESSING' AND current_step IN ('SENDER_DEBITED', 'RECIPIENT_CREDITED'))")
-    Flux<Payment> findPendingCompensations();
 }
 
 @Repository
@@ -49,7 +44,8 @@ public class R2dbcPaymentRepository implements PaymentRepository {
     
     @Override
     public Mono<Payment> save(Payment payment) {
-        return jpaRepository.save(payment);
+        return jpaRepository.save(payment)
+                .doOnNext(Payment::markNotNew);
     }
 
     @Override
@@ -64,44 +60,34 @@ public class R2dbcPaymentRepository implements PaymentRepository {
     
     @Override
     public Mono<Payment> findById(PaymentId id) {
-        return jpaRepository.findById(id);
+        return jpaRepository.findById(id)
+                .doOnNext(Payment::markNotNew);
     }
     
     @Override
     public Mono<Payment> findByTransactionId(TransactionId transactionId) {
-        return jpaRepository.findByTransactionId(transactionId);
+        return jpaRepository.findByTransactionId(transactionId)
+                .doOnNext(Payment::markNotNew);
     }
-    
-    @Override
-    public Flux<Payment> findBySenderAccountId(AccountId senderAccountId) {
-        return jpaRepository.findBySenderAccountId(senderAccountId);
-    }
-    
-    @Override
-    public Flux<Payment> findByRecipientAccountId(AccountId recipientAccountId) {
-        return jpaRepository.findByRecipientAccountId(recipientAccountId);
-    }
-    
+
     @Override
     public Flux<Payment> findByAccountId(AccountId accountId) {
-        return jpaRepository.findByAccountId(accountId);
+        return jpaRepository.findByAccountId(accountId)
+                .doOnNext(Payment::markNotNew);
     }
     
     @Override
     public Flux<Payment> findByStatus(PaymentStatus status) {
-        return jpaRepository.findByStatus(status);
+        return jpaRepository.findByStatus(status)
+                .doOnNext(Payment::markNotNew);
     }
     
     @Override
     public Flux<Payment> findByCurrentStep(PaymentStep step) {
-        return jpaRepository.findByCurrentStep(step);
+        return jpaRepository.findByCurrentStep(step)
+                .doOnNext(Payment::markNotNew);
     }
-    
-    @Override
-    public Flux<Payment> findPendingCompensations() {
-        return jpaRepository.findPendingCompensations();
-    }
-    
+
     @Override
     public Mono<Void> deleteById(PaymentId id) {
         return jpaRepository.deleteById(id);

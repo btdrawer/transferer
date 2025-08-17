@@ -34,12 +34,14 @@ public class R2dbcAccountRepository implements AccountRepository {
     
     @Override
     public Mono<Account> save(Account account) {
-        return jpaRepository.save(account);
+        return jpaRepository.save(account)
+                .doOnNext(Account::markNotNew);
     }
 
     @Override
     public Mono<Account> saveAndPublishEvents(Account account, List<DomainEvent<?>> events) {
         return jpaRepository.save(account)
+                .doOnNext(Account::markNotNew)
                 .flatMap(savedAccount ->
                         eventPublisher.publishWithinTransaction(events, transactionalOperator)
                                 .then(Mono.just(savedAccount))
@@ -49,12 +51,14 @@ public class R2dbcAccountRepository implements AccountRepository {
     
     @Override
     public Mono<Account> findById(AccountId id) {
-        return jpaRepository.findById(id);
+        return jpaRepository.findById(id)
+                .doOnNext(Account::markNotNew);
     }
     
     @Override
     public Mono<Account> findByAccountNumber(String accountNumber) {
-        return jpaRepository.findByAccountNumber(accountNumber);
+        return jpaRepository.findByAccountNumber(accountNumber)
+                .doOnNext(Account::markNotNew);
     }
     
     @Override

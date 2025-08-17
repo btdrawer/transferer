@@ -16,17 +16,11 @@ public interface PaymentRepository {
     Mono<Payment> findByTransactionId(TransactionId transactionId);
 
     Flux<Payment> findByAccountId(AccountId accountId);
-    
-    Flux<Payment> findBySenderAccountId(AccountId senderAccountId);
-    
-    Flux<Payment> findByRecipientAccountId(AccountId recipientAccountId);
 
     Flux<Payment> findByStatus(PaymentStatus status);
     
     Flux<Payment> findByCurrentStep(PaymentStep step);
-    
-    Flux<Payment> findPendingCompensations();
-    
+
     Mono<Void> deleteById(PaymentId id);
 
     Mono<Payment> saveAndPublishEvents(Payment payment, List<DomainEvent<?>> events);
