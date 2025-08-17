@@ -41,22 +41,6 @@ public class AccountController {
                 .map(balance -> new BalanceResponse(id, balance));
     }
 
-    @PutMapping("/{id}/balance")
-    public Mono<AccountResponse> updateBalance(
-            @PathVariable String id,
-            @Valid @RequestBody UpdateBalanceRequest request) {
-        
-        AccountId accountId = AccountId.of(id);
-        
-        if (request.getOperation() == UpdateBalanceRequest.BalanceOperation.CREDIT) {
-            return accountService.creditAccount(accountId, request.getAmount())
-                    .map(AccountResponse::new);
-        } else {
-            return accountService.debitAccount(accountId, request.getAmount())
-                    .map(AccountResponse::new);
-        }
-    }
-
     @PutMapping("/{id}/suspend")
     public Mono<AccountResponse> suspendAccount(@PathVariable String id) {
         AccountId accountId = AccountId.of(id);

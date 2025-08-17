@@ -272,7 +272,7 @@ public class PaymentService {
     }
 
     private Mono<Payment> creditRecipientAccount(Payment payment) {
-        return accountService.creditAccount(payment.getRecipientAccountId(), payment.getAmount())
+        return accountService.creditAccount(payment.getRecipientAccountId(), payment.getTransactionId(), payment.getAmount())
                 .then(Mono.just(payment))
                 .onErrorResume(error -> startCompensation(payment, error.getMessage()));
     }
@@ -292,7 +292,7 @@ public class PaymentService {
     }
 
     private Mono<Payment> compensateSenderAccount(Payment payment) {
-        return accountService.creditAccount(payment.getSenderAccountId(), payment.getAmount())
+        return accountService.creditAccount(payment.getSenderAccountId(), payment.getTransactionId(), payment.getAmount())
                 .then(Mono.just(payment))
                 .onErrorResume(compensationError ->
                         handlePaymentFailure(payment, payment.getCurrentStep(),

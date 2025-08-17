@@ -1,5 +1,6 @@
 package com.transferer.shared.outbox;
 
+import com.transferer.shared.domain.events.DomainEventType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -16,7 +17,7 @@ public class OutboxEvent {
     private String eventId;
     
     @Column("event_type")
-    private String eventType;
+    private DomainEventType eventType;
     
     @Column("aggregate_id")
     private String aggregateId;
@@ -33,7 +34,7 @@ public class OutboxEvent {
     @Column("created_at")
     private Instant createdAt;
 
-    public OutboxEvent(String eventId, String eventType, String aggregateId, String eventData, Instant occurredAt) {
+    public OutboxEvent(String eventId, DomainEventType eventType, String aggregateId, String eventData, Instant occurredAt) {
         this.eventId = eventId;
         this.eventType = eventType;
         this.aggregateId = aggregateId;
@@ -58,11 +59,11 @@ public class OutboxEvent {
         this.eventId = eventId;
     }
 
-    public String getEventType() {
+    public DomainEventType getEventType() {
         return eventType;
     }
 
-    public void setEventType(String eventType) {
+    public void setEventType(DomainEventType eventType) {
         this.eventType = eventType;
     }
 

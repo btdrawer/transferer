@@ -14,13 +14,13 @@ public interface PaymentRepository {
     Mono<Payment> findById(PaymentId id);
     
     Mono<Payment> findByTransactionId(TransactionId transactionId);
+
+    Flux<Payment> findByAccountId(AccountId accountId);
     
     Flux<Payment> findBySenderAccountId(AccountId senderAccountId);
     
     Flux<Payment> findByRecipientAccountId(AccountId recipientAccountId);
-    
-    Flux<Payment> findByAccountId(AccountId accountId);
-    
+
     Flux<Payment> findByStatus(PaymentStatus status);
     
     Flux<Payment> findByCurrentStep(PaymentStep step);

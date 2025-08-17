@@ -121,7 +121,7 @@ public class OutboxEventBus implements TransactionalEventBus {
                 .map(eventBody ->
                         new OutboxEvent(
                                 event.getEventId(),
-                                event.getEventType().toString(),
+                                event.getEventType(),
                                 event.getAggregateId(),
                                 eventBody,
                                 event.getOccurredAt()

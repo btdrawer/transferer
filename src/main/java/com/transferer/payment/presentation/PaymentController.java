@@ -62,16 +62,4 @@ public class PaymentController {
         return paymentService.getPaymentsByStatus(status)
                 .map(PaymentResponse::new);
     }
-
-    @GetMapping("/step/{step}")
-    public Flux<PaymentResponse> getPaymentsByStep(@PathVariable PaymentStep step) {
-        return paymentService.getPaymentsByStep(step)
-                .map(PaymentResponse::new);
-    }
-
-    @PostMapping("/retry-failed")
-    public Flux<PaymentResponse> retryFailedPayments() {
-        return paymentService.retryFailedPayments()
-                .map(PaymentResponse::new);
-    }
 }

@@ -107,6 +107,9 @@ public class Payment {
         if (status == PaymentStatus.FAILED) {
             throw new IllegalStateException("Cannot mark failed payment as completed");
         }
+        if (status == PaymentStatus.COMPENSATING) {
+            throw new IllegalStateException("Cannot mark compensating payment as completed");
+        }
         this.status = PaymentStatus.COMPLETED;
         this.currentStep = PaymentStep.COMPLETED;
         this.completedAt = LocalDateTime.now();

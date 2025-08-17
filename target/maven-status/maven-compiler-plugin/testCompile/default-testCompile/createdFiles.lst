@@ -1,0 +1,3 @@
+com/transferer/payment/PaymentSagaIntegrationTest.class
+com/transferer/payment/PaymentDoubleSpendingTest.class
+com/transferer/payment/PaymentRollbackTest.class

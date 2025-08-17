@@ -45,7 +45,6 @@
 /Users/bendrawer/transferer/src/main/java/com/transferer/account/application/AccountNotFoundException.java
 /Users/bendrawer/transferer/src/main/java/com/transferer/payment/presentation/PaymentController.java
 /Users/bendrawer/transferer/src/main/java/com/transferer/payment/domain/events/body/PaymentStepAdvancedEventBody.java
-/Users/bendrawer/transferer/src/main/java/com/transferer/transaction/presentation/TransactionController.java
 /Users/bendrawer/transferer/src/main/java/com/transferer/account/application/dto/BalanceResponse.java
 /Users/bendrawer/transferer/src/main/java/com/transferer/shared/exception/GlobalExceptionHandler.java
 /Users/bendrawer/transferer/src/main/java/com/transferer/shared/events/InMemoryEventBus.java
