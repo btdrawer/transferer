@@ -9,11 +9,15 @@ import com.transferer.payment.domain.Payment;
 import com.transferer.payment.domain.PaymentRepository;
 import com.transferer.payment.domain.PaymentStatus;
 import com.transferer.payment.domain.PaymentStep;
+import com.transferer.payment.infrastructure.R2dbcPaymentRepository;
 import com.transferer.transaction.application.TransactionService;
 import com.transferer.transaction.domain.TransactionRepository;
+import com.transferer.account.infrastructure.R2dbcAccountRepository;
+import com.transferer.transaction.infrastructure.R2dbcTransactionRepository;
 import com.transferer.shared.events.EventBus;
 import com.transferer.TestEventUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +25,7 @@ import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -63,6 +68,9 @@ class PaymentSagaDbIntegrationTest {
     @Autowired
     private EventBus eventBus;
 
+    @Autowired
+    private DatabaseClient databaseClient;
+
     private AccountId senderAccountId;
     private AccountId recipientAccountId;
     private BigDecimal paymentAmount;
@@ -80,6 +88,13 @@ class PaymentSagaDbIntegrationTest {
 
         Assertions.assertNotNull(recipientAccount);
         recipientAccountId = recipientAccount.getId();
+    }
+
+    @AfterEach
+    void tearDown() {
+        databaseClient.sql("DELETE FROM payments").then().block();
+        databaseClient.sql("DELETE FROM transactions").then().block();
+        databaseClient.sql("DELETE FROM accounts").then().block();
     }
 
     @Test
