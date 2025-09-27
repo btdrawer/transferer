@@ -28,8 +28,8 @@ class PaymentSagaIdempotencyTest extends AbstractPaymentSagaTest {
     static class IdempotencyTestConfiguration {
         @Bean("duplicateEventBus")
         @Primary
-        public EventBus duplicateEventBus(@Qualifier("kafkaEventBus") EventBus kafkaEventBus) {
-            return new DuplicateEventPublisher(kafkaEventBus);
+        public EventBus duplicateEventBus(@Qualifier("outboxEventBus") EventBus outboxEventBus) {
+            return new DuplicateEventPublisher(outboxEventBus);
         }
     }
 }

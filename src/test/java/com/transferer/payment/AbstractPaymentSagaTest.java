@@ -14,7 +14,6 @@ import com.transferer.transaction.domain.TransactionRepository;
 import com.transferer.shared.domain.events.DomainEventType;
 import com.transferer.TestEventUtils;
 import com.transferer.shared.events.EventBus;
-import com.transferer.shared.events.OutboxToKafkaEventBridge;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +62,7 @@ public abstract class AbstractPaymentSagaTest {
     protected EventBus eventBus;
 
     @Autowired
-    protected OutboxToKafkaEventBridge eventBridge;
+    protected KafkaBridgeTestConfiguration.TestOutboxToKafkaEventBridge eventBridge;
 
     protected AccountId senderAccountId;
     protected AccountId recipientAccountId;
