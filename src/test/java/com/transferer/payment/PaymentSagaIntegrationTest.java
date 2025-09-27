@@ -18,6 +18,7 @@ import org.springframework.test.annotation.DirtiesContext;
     com.transferer.account.infrastructure.R2dbcAccountRepository.class,
     com.transferer.transaction.infrastructure.R2dbcTransactionRepository.class,
     com.transferer.shared.outbox.OutboxEventPublisher.class,
+    com.transferer.shared.events.OutboxToKafkaEventBridge.class,
     com.transferer.TestJacksonConfiguration.class,
     KafkaBridgeTestConfiguration.class,
     PaymentSagaIntegrationTest.IntegrationTestConfiguration.class

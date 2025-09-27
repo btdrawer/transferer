@@ -61,8 +61,7 @@ public abstract class AbstractPaymentSagaTest {
     @Autowired
     protected EventBus eventBus;
 
-    @Autowired
-    protected KafkaBridgeTestConfiguration.TestOutboxToKafkaEventBridge eventBridge;
+
 
     protected AccountId senderAccountId;
     protected AccountId recipientAccountId;
@@ -71,9 +70,6 @@ public abstract class AbstractPaymentSagaTest {
     @BeforeEach
     void setUp() {
         paymentAmount = new BigDecimal("100.00");
-
-        // Start the Kafka bridge to enable outbox->Kafka->services flow
-        eventBridge.startBridge();
 
         // Use the AccountService to properly create accounts, which should handle persistence correctly
         Account senderAccount = accountService.openAccount("John Doe", new BigDecimal("1000.00")).block();

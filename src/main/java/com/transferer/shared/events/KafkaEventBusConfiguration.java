@@ -1,5 +1,6 @@
 package com.transferer.shared.events;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -62,5 +63,11 @@ public class KafkaEventBusConfiguration {
                 .subscription(Collections.singleton(eventsTopic));
         
         return KafkaReceiver.create(receiverOptions);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "transferer.eventbus.bridge.enabled", havingValue = "true")
+    public EventPublisher eventPublisher(KafkaEventBus kafkaEventBus) {
+        return kafkaEventBus;
     }
 }

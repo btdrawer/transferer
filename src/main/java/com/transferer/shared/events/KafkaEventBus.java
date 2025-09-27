@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 
 @Component
 @ConditionalOnProperty(name = "transferer.eventbus.type", havingValue = "kafka")
-public class KafkaEventBus implements EventBus {
+public class KafkaEventBus implements EventBus, EventPublisher {
     
     private static final Logger logger = LoggerFactory.getLogger(KafkaEventBus.class);
     
