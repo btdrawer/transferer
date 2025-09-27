@@ -20,6 +20,9 @@ spring:
   profiles:
     active: dev
 
+  kafka:
+    bootstrap-servers: localhost:9092
+
 server:
   port: 8080
   netty:
@@ -39,6 +42,17 @@ outbox:
     batch-size: 100
     cleanup-interval: 3600000
     cleanup-retention-days: 7
+
+transferer:
+  eventbus:
+    type: outbox # Options: outbox, kafka
+    bridge:
+      enabled: false # Set to true to bridge outbox events to Kafka
+  kafka:
+    topic:
+      events: domain-events
+    consumer:
+      group-id: transferer-events
 
 ---
 spring:

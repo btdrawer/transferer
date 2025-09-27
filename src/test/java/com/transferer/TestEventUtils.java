@@ -1,6 +1,8 @@
 package com.transferer;
 
+import com.transferer.shared.domain.events.DomainEvent;
 import com.transferer.shared.domain.events.DomainEventType;
+import com.transferer.shared.events.EventBus;
 import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Mono;
 
@@ -8,6 +10,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TestEventUtils {
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(5);
@@ -63,6 +66,87 @@ public class TestEventUtils {
      */
     public static Mono<Void> waitForEventTypes(DatabaseClient databaseClient, List<DomainEventType> expectedEventTypes, Duration timeout) {
         return waitForEventsInOutbox(databaseClient, expectedEventTypes, timeout);
+    }
+
+    /**
+     * Combines an operation with waiting for events to flow through the Kafka bridge.
+     * This method waits for events to appear in both the outbox and be processed by the Kafka EventBus.
+     * 
+     * @param operation the operation to perform
+     * @param databaseClient the database client to verify outbox events
+     * @param eventBus the Kafka EventBus to monitor for processed events
+     * @param expectedEventTypes the list of event types to wait for
+     * @return Mono that completes with the operation result after events flow through the bridge
+     */
+    public static <T> Mono<T> performAndWaitForKafkaBridgeEvents(
+            Mono<T> operation,
+            DatabaseClient databaseClient,
+            EventBus eventBus,
+            List<DomainEventType> expectedEventTypes) {
+        return performAndWaitForKafkaBridgeEvents(operation, databaseClient, eventBus, expectedEventTypes, DEFAULT_TIMEOUT);
+    }
+
+    /**
+     * Combines an operation with waiting for events to flow through the Kafka bridge with custom timeout.
+     */
+    public static <T> Mono<T> performAndWaitForKafkaBridgeEvents(
+            Mono<T> operation,
+            DatabaseClient databaseClient,
+            EventBus eventBus,
+            List<DomainEventType> expectedEventTypes,
+            Duration timeout) {
+        if (expectedEventTypes.isEmpty()) {
+            return operation;
+        }
+
+        // Track events received from Kafka
+        Map<DomainEventType, Integer> receivedEventCounts = new ConcurrentHashMap<>();
+        Map<DomainEventType, Integer> expectedCounts = new HashMap<>();
+        
+        for (DomainEventType eventType : expectedEventTypes) {
+            expectedCounts.put(eventType, expectedCounts.getOrDefault(eventType, 0) + 1);
+            receivedEventCounts.put(eventType, 0);
+        }
+
+        // Subscribe to events from Kafka EventBus
+        for (DomainEventType eventType : expectedCounts.keySet()) {
+            eventBus.eventStream(eventType)
+                    .doOnNext(event -> {
+                        receivedEventCounts.merge(eventType, 1, Integer::sum);
+                    })
+                    .subscribe();
+        }
+
+        return operation
+                .delayUntil(result -> 
+                    // First wait for events in outbox (bridge source)
+                    waitForEventsInOutbox(databaseClient, expectedEventTypes, timeout)
+                            // Then wait for events to flow through Kafka (bridge destination)
+                            .then(waitForKafkaEvents(receivedEventCounts, expectedCounts, timeout))
+                );
+    }
+
+    private static Mono<Void> waitForKafkaEvents(
+            Map<DomainEventType, Integer> receivedEventCounts,
+            Map<DomainEventType, Integer> expectedCounts,
+            Duration timeout) {
+        
+        return Mono.defer(() -> {
+            boolean allEventsReceived = expectedCounts.entrySet().stream()
+                    .allMatch(entry -> {
+                        DomainEventType eventType = entry.getKey();
+                        int expectedCount = entry.getValue();
+                        int receivedCount = receivedEventCounts.getOrDefault(eventType, 0);
+                        return receivedCount >= expectedCount;
+                    });
+
+            if (allEventsReceived) {
+                return Mono.empty();
+            } else {
+                return Mono.delay(Duration.ofMillis(100))
+                        .then(waitForKafkaEvents(receivedEventCounts, expectedCounts, timeout));
+            }
+        }).timeout(timeout);
     }
     
     /**

@@ -13,6 +13,8 @@ import com.transferer.transaction.application.TransactionService;
 import com.transferer.transaction.domain.TransactionRepository;
 import com.transferer.shared.domain.events.DomainEventType;
 import com.transferer.TestEventUtils;
+import com.transferer.shared.events.EventBus;
+import com.transferer.shared.events.OutboxToKafkaEventBridge;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +59,12 @@ public abstract class AbstractPaymentSagaTest {
     @Autowired
     protected DatabaseClient databaseClient;
 
+    @Autowired
+    protected EventBus eventBus;
+
+    @Autowired
+    protected OutboxToKafkaEventBridge eventBridge;
+
     protected AccountId senderAccountId;
     protected AccountId recipientAccountId;
     protected BigDecimal paymentAmount;
@@ -64,6 +72,9 @@ public abstract class AbstractPaymentSagaTest {
     @BeforeEach
     void setUp() {
         paymentAmount = new BigDecimal("100.00");
+
+        // Start the Kafka bridge to enable outbox->Kafka->services flow
+        eventBridge.startBridge();
 
         // Use the AccountService to properly create accounts, which should handle persistence correctly
         Account senderAccount = accountService.openAccount("John Doe", new BigDecimal("1000.00")).block();
@@ -87,7 +98,7 @@ public abstract class AbstractPaymentSagaTest {
     @Test
     void should_initiate_payment_and_persist_to_database() {
         StepVerifier.create(
-                TestEventUtils.performAndWaitForEvents(
+                TestEventUtils.performAndWaitForKafkaBridgeEvents(
                         paymentService.initiatePayment(
                                 senderAccountId,
                                 recipientAccountId,
@@ -95,6 +106,7 @@ public abstract class AbstractPaymentSagaTest {
                                 "Database integration test"
                         ),
                         databaseClient,
+                        eventBus,
                         Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 )
         )
@@ -114,7 +126,7 @@ public abstract class AbstractPaymentSagaTest {
     @Test
     void should_persist_payment_state_changes_correctly() {
         StepVerifier.create(
-                TestEventUtils.performAndWaitForEvents(
+                TestEventUtils.performAndWaitForKafkaBridgeEvents(
                         paymentService.initiatePayment(
                                 senderAccountId,
                                 recipientAccountId,
@@ -122,6 +134,7 @@ public abstract class AbstractPaymentSagaTest {
                                 "State persistence test"
                         ),
                         databaseClient,
+                        eventBus,
                         Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 ).flatMap(payment ->
                         paymentRepository.findById(payment.getId())
@@ -141,7 +154,7 @@ public abstract class AbstractPaymentSagaTest {
     @Test
     void should_handle_payment_saga_progression() {
         StepVerifier.create(
-                TestEventUtils.performAndWaitForEvents(
+                TestEventUtils.performAndWaitForKafkaBridgeEvents(
                         paymentService.initiatePayment(
                                 senderAccountId,
                                 recipientAccountId,
@@ -149,10 +162,11 @@ public abstract class AbstractPaymentSagaTest {
                                 "Saga progression test"
                         ),
                         databaseClient,
+                        eventBus,
                         Arrays.asList(DomainEventType.PAYMENT_INITIATED, DomainEventType.PAYMENT_STEP_ADVANCED)
                 ).delayUntil(payment -> 
-                        // Wait for saga processing to complete by checking for additional events in outbox
-                        Mono.delay(Duration.ofMillis(300))
+                        // Wait for saga processing to complete via Kafka bridge
+                        Mono.delay(Duration.ofMillis(500))
                 ).flatMap(payment -> 
                         // Re-fetch the payment to get the latest state after saga processing
                         paymentRepository.findById(payment.getId())

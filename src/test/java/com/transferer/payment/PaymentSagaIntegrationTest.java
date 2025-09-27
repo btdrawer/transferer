@@ -13,9 +13,9 @@ import org.springframework.test.annotation.DirtiesContext;
     com.transferer.payment.infrastructure.R2dbcPaymentRepository.class,
     com.transferer.account.infrastructure.R2dbcAccountRepository.class,
     com.transferer.transaction.infrastructure.R2dbcTransactionRepository.class,
-    com.transferer.shared.outbox.OutboxEventBus.class,
     com.transferer.shared.outbox.OutboxEventPublisher.class,
-    com.transferer.TestJacksonConfiguration.class
+    com.transferer.TestJacksonConfiguration.class,
+    KafkaBridgeTestConfiguration.class
 })
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)

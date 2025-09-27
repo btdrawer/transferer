@@ -27,10 +27,6 @@ public class TestJacksonConfiguration extends AbstractR2dbcConfiguration {
         return new ObjectMapper();
     }
     
-    @Bean
-    public EventBus eventBus() {
-        return new InMemoryEventBus();
-    }
     
     @Override
     public ConnectionFactory connectionFactory() {

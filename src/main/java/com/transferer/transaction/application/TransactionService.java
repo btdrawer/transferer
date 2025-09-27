@@ -4,13 +4,11 @@ import com.transferer.account.domain.AccountId;
 import com.transferer.transaction.domain.Transaction;
 import com.transferer.transaction.domain.TransactionId;
 import com.transferer.transaction.domain.TransactionRepository;
-import com.transferer.transaction.domain.TransactionStatus;
 import com.transferer.transaction.domain.events.TransactionCreatedEvent;
 import com.transferer.transaction.domain.events.TransactionCompletedEvent;
 import com.transferer.transaction.domain.events.TransactionFailedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -54,26 +52,6 @@ public class TransactionService {
     public Mono<Transaction> getTransaction(TransactionId transactionId) {
         return transactionRepository.findById(transactionId)
                 .switchIfEmpty(Mono.error(new TransactionNotFoundException("Transaction not found with ID: " + transactionId)));
-    }
-
-    @Transactional(readOnly = true)
-    public Flux<Transaction> getTransactionsByAccount(AccountId accountId) {
-        return transactionRepository.findByAccountId(accountId);
-    }
-
-    @Transactional(readOnly = true)
-    public Flux<Transaction> getTransactionsBySender(AccountId senderAccountId) {
-        return transactionRepository.findBySenderAccountId(senderAccountId);
-    }
-
-    @Transactional(readOnly = true)
-    public Flux<Transaction> getTransactionsByRecipient(AccountId recipientAccountId) {
-        return transactionRepository.findByRecipientAccountId(recipientAccountId);
-    }
-
-    @Transactional(readOnly = true)
-    public Flux<Transaction> getTransactionsByStatus(TransactionStatus status) {
-        return transactionRepository.findByStatus(status);
     }
 
     public Mono<Transaction> markTransactionAsProcessing(TransactionId transactionId) {

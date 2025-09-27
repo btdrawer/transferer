@@ -50,12 +50,6 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
-    public Mono<Account> getAccountByNumber(String accountNumber) {
-        return accountRepository.findByAccountNumber(accountNumber)
-                .switchIfEmpty(Mono.error(new AccountNotFoundException("Account not found with number: " + accountNumber)));
-    }
-
-    @Transactional(readOnly = true)
     public Mono<BigDecimal> getAccountBalance(AccountId accountId) {
         return getAccount(accountId)
                 .map(Account::getBalance);

@@ -1,9 +1,7 @@
 package com.transferer.payment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.transferer.shared.events.EventBus;
-import com.transferer.shared.outbox.OutboxEventBus;
-import com.transferer.shared.outbox.OutboxEventRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -21,22 +19,17 @@ import org.springframework.test.annotation.DirtiesContext;
     com.transferer.transaction.infrastructure.R2dbcTransactionRepository.class,
     com.transferer.shared.outbox.OutboxEventPublisher.class,
     com.transferer.TestJacksonConfiguration.class,
-    PaymentSagaIdempotencyTest.TestConfiguration.class
+    KafkaBridgeTestConfiguration.class,
+    PaymentSagaIdempotencyTest.IdempotencyTestConfiguration.class
 })
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class PaymentSagaIdempotencyTest extends AbstractPaymentSagaTest {
-    
-    static class TestConfiguration {
-        @Bean
-        public OutboxEventBus outboxEventBus(OutboxEventRepository outboxEventRepository, ObjectMapper objectMapper) {
-            return new OutboxEventBus(outboxEventRepository, objectMapper);
-        }
-        
+    static class IdempotencyTestConfiguration {
         @Bean("duplicateEventBus")
         @Primary
-        public EventBus duplicateEventBus(OutboxEventBus outboxEventBus) {
-            return new DuplicateEventPublisher(outboxEventBus);
+        public EventBus duplicateEventBus(@Qualifier("kafkaEventBus") EventBus kafkaEventBus) {
+            return new DuplicateEventPublisher(kafkaEventBus);
         }
     }
 }
